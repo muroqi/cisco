@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
+"""
+このソフトウェアは"Cisco Feature Navigator" の "Search by feature" をカスタマイズしたものです。
+詳しくはhttp://www.cisco.com/go/cfn をご覧ください。
+"""
+
 __author__ = 'Ryota Muroki'
 __copylight__ = 'Copyright (c) 2016 Ryota Muroki'
 __license__ = 'MIT'
@@ -13,14 +18,56 @@ except Exception as e:
 	exit(1)
 
 
-# 不正なjsonデータをpython用に整形する関数
-def json_py(url):
+
+# 機能ワードに対して機能一覧（キーが順序番号、値がリスト（機能番号、機能名））を返す関数
+def feature_dict(f_word):
+	fid = 0
+	f_word = f_word.replace(' ','%20')
+	f_url = 'http://tools.cisco.com/ITDIT/CFN/jsp/Feature.json?'
 	try:
-		r = requests.get(url).text
+		json_data = requests.get(f_url + '&flttxt=' + f_word).json()
 	except Exception as e:
 		print(e)
 		exit(1)
-	return demjson.decode(r)
+	for feature in json_data['featureList']['feature']:
+		fid += 1
+		f_dict[fid] = [feature['id'],feature['name']]
+	return f_dict
+
+
+# 機能番号に対して製品一覧（キーが順序番号、値がリスト(製品番号、値が製品名)）を返す関数
+def platform_dict(fid):
+	pid = 0
+	p_url = 'http://tools.cisco.com/ITDIT/CFN/jsp/PlatformTree.json?'
+	p = requests.get(p_url + '&featIds=' + str(f_dict[fid][0])).text
+	# pは不正なjson形式を返すので、demjsonで整形する
+	p = demjson.decode(p)
+	p_lst = []
+	for pi in p['children']:
+		for pj in pi['children']:
+			pid += 1
+			p_dict[pid] = [int(pj['nid']),pj['nvalue']]
+	return p_dict
+
+
+# 機能番号、製品番号に対して機能、製品を満たすライセンス一覧を返す関数
+def license_lst(fid,pid):
+	lc_lst = []
+	i_url = 'http://tools.cisco.com/ITDIT/CFN/jsp/Image.json?'
+	try:
+		s = requests.get(i_url + '&featIds=' + str(f_dict[fid][0]) + '&platformId=' + str(p_dict[pid][0])).json()
+	except Exception as e:
+		print(e)
+		exit(1)
+	for i in s['imageList']['image']:
+		if re.search(r'CAT',i['featureSet']):
+			continue
+		elif re.search(r'ISR',i['featureSet']):
+			continue
+		else:
+			lc_lst.append(i['featureSet'])
+	lc_lst = sorted(list(set(lc_lst)))
+	return lc_lst
 
 # 30行以上の出力を分けて表示する関数
 def more(dict,sort_p):
@@ -54,56 +101,6 @@ def more(dict,sort_p):
 # 辞書データを正規表現でフィルタする関数
 def filter_dict(pattern,dct):
 	return dict((k,dct[k]) for k in dct if re.search(pattern,dct[k][1],re.IGNORECASE))
-
-
-# 機能ワードに対して機能一覧（キーが順序番号、値がリスト（機能番号、機能名））を返す関数
-def feature_dict(f_word):
-	fid = 0
-	f_word = f_word.replace(' ','%20')
-	f_url = 'http://tools.cisco.com/ITDIT/CFN/jsp/Feature.json?'
-	try:
-		json_data = requests.get(f_url + '&flttxt=' + f_word).json()
-	except Exception as e:
-		print(e)
-		exit(1)
-	for feature in json_data['featureList']['feature']:
-		fid += 1
-		f_dict[fid] = [feature['id'],feature['name']]
-	return f_dict
-
-
-# 機能番号に対して製品一覧（キーが順序番号、値がリスト(製品番号、値が製品名)）を返す関数
-def platform_dict(fid):
-	pid = 0
-	p_url = 'http://tools.cisco.com/ITDIT/CFN/jsp/PlatformTree.json?'
-	# p_urlは不正なjson形式を返すので、json_py関数を使う
-	p = json_py(p_url + '&featIds=' + str(f_dict[fid][0]))
-	p_lst = []
-	for pi in p['children']:
-		for pj in pi['children']:
-			pid += 1
-			p_dict[pid] = [int(pj['nid']),pj['nvalue']]
-	return p_dict
-
-
-# 機能番号、製品番号に対して機能、製品を満たすライセンス一覧を返す関数
-def license_lst(fid,pid):
-	lc_lst = []
-	i_url = 'http://tools.cisco.com/ITDIT/CFN/jsp/Image.json?'
-	try:
-		s = requests.get(i_url + '&featIds=' + str(f_dict[fid][0]) + '&platformId=' + str(p_dict[pid][0])).json()
-	except Exception as e:
-		print(e)
-		exit(1)
-	for i in s['imageList']['image']:
-		if re.search(r'CAT',i['featureSet']):
-			continue
-		elif re.search(r'ISR',i['featureSet']):
-			continue
-		else:
-			lc_lst.append(i['featureSet'])
-	lc_lst = sorted(list(set(lc_lst)))
-	return lc_lst
 
 
 # state : 機能キーワード検索時(初期値)は1, 機能番号検索時は2, 

@@ -193,30 +193,27 @@ while(1):
 		output = "\n\n\n** " + f_dict[int(fid)][1] + " (" + str(fid) + ") **\n"
 		output += "\n\nPlatform" + delim1*19 + "Feature Set/License/Supervisor(NX-OS)\n"
 		output += delim2*22 + delim1*5 + delim2*50 + '\n'
-		# 最初の製品idにフラグを立てる
 		pid_flg = 1
 		# ライセンスリストを出力
 		for pid in pid_lst:
-			# 最初のライセンスにフラグを立てる
 			lic_flg = 1
 			p_length = len(p_dict[pid][1])
 			for lic in license_lst(fid,pid):
-				# 最初の製品は改行なしで出力
+				# 最初の製品且つ最初のライセンス: 改行なしで出力
 				if pid_flg == 1 and lic_flg == 1:
 					if(p_length < 25):
 						output += p_dict[pid][1] + delim1*(27 - p_length) + lic + '\n'
 					else:
 						output += p_dict[pid][1][0:25] + delim1*2 + lic + '\n'
-					# ライセンスのフラグを下げる
 					lic_flg = 0
-				# 2番目以降の製品は改行してから出力
+				# 2番目以降の製品且つ最初の製品: 改行してから出力
 				elif pid_flg == 0 and lic_flg == 1:
 					if(p_length < 25):
 						output += '\n' + p_dict[pid][1] + delim1*(27 - p_length) + lic + '\n'
 					else:
 						output += '\n' + p_dict[pid][1][0:25] + delim1*2 + lic + '\n'
 					lic_flg = 0
-				# 2番目以降のライセンスの出力
+				# 2番目以降のライセンス出力
 				else:
 					output += delim1*27 + lic + '\n'
 			# 製品idのフラグを下げる

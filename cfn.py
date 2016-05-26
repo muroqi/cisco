@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 """
-このソフトウェアは"Cisco Feature Navigator" の "Search by feature" をカスタマイズしたものです。
+このソフトウェアは"Cisco Feature Navigator" の "Search by feature" をCLI用にカスタマイズしたものです。
 詳しくはhttp://www.cisco.com/go/cfn をご覧ください。
 """
 
@@ -69,7 +69,6 @@ def license_lst(fid,pid):
 	return lc_lst
 
 # 1文字ずつ読み込む関数
-
 def getch():
 	try:
 		import tty,sys,termios

@@ -18,7 +18,6 @@ except Exception as e:
 	exit(1)
 
 
-
 # 機能ワードに対して機能一覧（キーが順序番号、値がリスト（機能番号、機能名））を返す関数
 def feature_dict(f_word):
 	fid = 0
@@ -69,6 +68,24 @@ def license_lst(fid,pid):
 	lc_lst = sorted(list(set(lc_lst)))
 	return lc_lst
 
+# 1文字ずつ読み込む関数
+
+def getch():
+	try:
+		import tty,sys,termios
+		fd = sys.stdin.fileno()
+		old_settings = termios.tcgetattr(fd)
+		try:
+			tty.setraw(sys.stdin.fileno())
+			ch = sys.stdin.read(1)
+		finally:
+			termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+		return ch
+	except:
+		import msvcrt
+		return msvcrt.getch()
+
+
 # 30行以上の出力を分けて表示する関数
 def more(dict,sort_p):
 	rows = 0
@@ -87,8 +104,11 @@ def more(dict,sort_p):
 				# 30行出力後のメッセージ
 				pause_msg = '\n-- More --(' + str(int(times*3000/len(dict))) + '%)  ("n" : Next, "q" : Quit) '
 				while(1):
-					res = input(pause_msg)
-					print("")
+					print(pause_msg)
+					res = getch()
+					print('')
+					if isinstance(res,bytes):
+						res = res.decode('utf-8')
 					if res == 'n':
 						rows = 0
 						break

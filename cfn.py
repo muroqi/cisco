@@ -210,14 +210,13 @@ while(1):
 			continue
 		# 製品番号を整数へ変換
 		pid_lst = map(int,pid_lst)
-		# ライセンスリストを出力し、state 4へ移動
+		# 最終結果の表示
 		delim1 = ' '
 		delim2 = '-'
 		output = "\n\n\n** " + f_dict[int(fid)][1] + " (" + str(fid) + ") **\n"
 		output += "\n\nPlatform Series" + delim1*3 + "Minimum Version" + delim1*2 + "Feature Set/License/Supervisor(NX-OS)\n"
 		output += delim2*16 + delim1*2 + delim2*15 + delim1*2 + delim2*40 + '\n'
 		pid_flg = 1
-		# ライセンスリストを出力
 		for pid in pid_lst:
 			lic_flg = 1
 			p_len = len(p_dict[pid][1])
@@ -246,9 +245,7 @@ while(1):
 				# 2行目以降のライセンス出力
 				else:
 					output += delim1*35 + lc + '\n'
-			# 製品idのフラグを下げる
 			pid_flg = 0
-		# 結果を出力
 		print(output)
 		# state 4へ移動
 		state = 4

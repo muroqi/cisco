@@ -50,9 +50,10 @@ def platform_dict(fid):
 
 
 # 機能番号、製品番号に対して機能、製品を満たすをos情報(最小バージョン、ライセンスリスト)を返す関数
-def os_lst(fid,pid):
-	v_lst =[]
+def os_dict(fid,pid):
+	min_ver = 0
 	lc_lst = []
+	os_info = {}
 	i_url = 'http://tools.cisco.com/ITDIT/CFN/jsp/Image.json?'
 	try:
 		s = requests.get(i_url + '&featIds=' + str(f_dict[fid][0]) + '&platformId=' + str(p_dict[pid][0])).json()
@@ -64,11 +65,11 @@ def os_lst(fid,pid):
 			continue
 		else:
 			lc_lst.append(i['featureSet'])
-			v_lst.append(i['releaseNumber'])
-	lc_lst = sorted(list(set(lc_lst)))
-	min_ver = v_lst[0]
-	lc_lst.insert(0,min_ver)
-	return lc_lst
+			if min_ver == 0:
+				min_ver = i['releaseNumber']
+	os_info['license'] = sorted(list(set(lc_lst)))
+	os_info['min_version'] = min_ver
+	return os_info
 
 
 # 1文字ずつ読み込む関数
@@ -213,21 +214,20 @@ while(1):
 		delim1 = ' '
 		delim2 = '-'
 		output = "\n\n\n** " + f_dict[int(fid)][1] + " (" + str(fid) + ") **\n"
-		output += "\n\nPlatform" + delim1*9 + "Minimum Version" + delim1*2 + "Feature Set/License/Supervisor(NX-OS)\n"
-		output += delim2*15 + delim1*2 + delim2*15 + delim1*2 + delim2*40 + '\n'
+		output += "\n\nPlatform Series" + delim1*3 + "Minimum Version" + delim1*2 + "Feature Set/License/Supervisor(NX-OS)\n"
+		output += delim2*16 + delim1*2 + delim2*15 + delim1*2 + delim2*40 + '\n'
 		pid_flg = 1
 		# ライセンスリストを出力
 		for pid in pid_lst:
 			lic_flg = 1
 			p_len = len(p_dict[pid][1])
-			lc_lst = os_lst(fid,pid)
-			version = lc_lst[0]
+			os_info = os_dict(fid,pid)
+			version = os_info['min_version']
 			v_len = len(version)
-			lc_lst.pop(0)
-			for lc in lc_lst:
+			for lc in os_info['license']:
 				# str1: 製品名が15文字未満の場合の出力　str2: 製品名が15文字以上の場合の出力
-				str1 = p_dict[pid][1] + delim1*(15 - p_len) + delim1*4 + version + delim1*(15 - v_len) + lc +'\n'
-				str2 = p_dict[pid][1][0:15] + delim1*4 + version + delim1*(15 - v_len) + lc +'\n'
+				str1 = p_dict[pid][1] + delim1*(16 - p_len) + delim1*2 + version + delim1*(17 - v_len) + lc +'\n'
+				str2 = p_dict[pid][1][0:15] + '*' + delim1*2 + version + delim1*(17 - v_len) + lc +'\n'
 				
 				# 最初の製品且つ1行目: 改行なしで出力
 				if pid_flg == 1 and lic_flg == 1:
@@ -245,7 +245,7 @@ while(1):
 					lic_flg = 0
 				# 2行目以降のライセンス出力
 				else:
-					output += delim1*34 + lc + '\n'
+					output += delim1*35 + lc + '\n'
 			# 製品idのフラグを下げる
 			pid_flg = 0
 		# 結果を出力

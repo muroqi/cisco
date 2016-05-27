@@ -231,14 +231,14 @@ while(1):
 				
 				# 最初の製品且つ1行目: 改行なしで出力
 				if pid_flg == 1 and lic_flg == 1:
-					if(p_len < 15):
+					if(p_len < 16):
 						output += str1 
 					else:
 						output += str2 
 					lic_flg = 0
 				# 2番目以降の製品且つ1行目: 改行してから出力
 				elif pid_flg == 0 and lic_flg == 1:
-					if(p_len < 15):
+					if(p_len < 16):
 						output += '\n' + str1
 					else:
 						output += '\n' + str2

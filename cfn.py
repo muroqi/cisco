@@ -61,7 +61,7 @@ def os_dict(fid,pid):
 		print(e)
 		exit(1)
 	for i in s['imageList']['image']:
-		if re.search(r'(CAT|ISR)',i['featureSet']):
+		if re.search(r'(CAT|ISR|UNIVERSAL$)',i['featureSet']):
 			continue
 		else:
 			lc_lst.append(i['featureSet'])
